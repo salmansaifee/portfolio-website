@@ -23,7 +23,8 @@ PORTFOLIO_DATA = {
             'description': 'Interactive Power BI dashboard for sales analytics',
             'tools': ['Power BI', 'SQL', 'Excel'],
             'impact': '15% Revenue Increase',
-            'details': 'Created dashboard analyzing 5000+ transactions resulting in 15% revenue increase'
+            'details': 'Created dashboard analyzing 5000+ transactions resulting in 15% revenue increase',
+            'dashboard_url': 'https://app.powerbi.com/view?r=eyJrIjoiYmYzNzQ1ODQtNzdiNS00MWIwLTk5NTQtNmJlMTkzMDZhOWJhIiwidCI6ImRiOTNmNTcwLTJiZTEtNDA4My05OWJhLTA4M2E0MWQyY2I0MSJ9'
         },
         {
             'id': 2,
@@ -52,6 +53,11 @@ PORTFOLIO_DATA = {
         'Programming': [
             {'name': 'Python', 'level': 50},
             {'name': 'SQL', 'level': 60}
+        ],
+        'Soft Skills': [
+            {'name': 'Communication', 'level': 90},
+            {'name': 'Team Leadership', 'level': 80},
+            {'name': 'Stakeholder Co-ordination', 'level': 80}
         ]
     },
     
@@ -69,7 +75,7 @@ PORTFOLIO_DATA = {
         {
             'company': 'Accenture',
             'role': 'Analyst',
-            'duration': 'Mar 2022 - Mar 2022',
+            'duration': 'Mar 2020 - Mar 2022',
             'achievements': [
                 'Preparation of Teams Performance Report in Excel',
                 'Performed Excel analysis',
@@ -119,9 +125,11 @@ def contact():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return render_template('index.html', data=PORTFOLIO_DATA)
+
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))

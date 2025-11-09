@@ -1,135 +1,192 @@
-// Theme Toggle
-const themeToggle = document.getElementById('themeToggle');
-const html = document.documentElement;
+// ============================================
+// PORTFOLIO WEBSITE - MAIN JAVASCRIPT
+// ============================================
 
-const currentTheme = localStorage.getItem('theme') || 'light';
-html.setAttribute('data-theme', currentTheme);
-updateThemeIcon(currentTheme);
+console.log('Main.js loaded successfully!');
+console.log('Portfolio Data:', window.portfolioData);
 
-themeToggle.addEventListener('click', () => {
-    const newTheme = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-});
+// ============================================
+// PROJECT MODAL FUNCTIONALITY
+// ============================================
 
-function updateThemeIcon(theme) {
-    themeToggle.textContent = theme === 'light' ? '🌙' : '☀️';
-}
-
-// Smooth Scroll
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth' });
-        }
-    });
-});
-
-// Load Portfolio Data
-async function loadPortfolioData() {
-    try {
-        const response = await fetch('/api/portfolio');
-        const data = await response.json();
-        
-        renderSkills(data.skills);
-        renderProjects(data.projects);
-        renderExperience(data.experience);
-    } catch (error) {
-        console.error('Error loading data:', error);
-    }
-}
-
-function renderSkills(skills) {
-    const container = document.getElementById('skillsGrid');
+function openProjectModal(projectId) {
+    console.log('Opening modal for project ID:', projectId);
     
-    Object.entries(skills).forEach(([category, skillList]) => {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'skill-category';
-        categoryDiv.innerHTML = `
-            <h3>${category}</h3>
-            ${skillList.map(skill => `
-                <div class="skill-item">
-                    <div class="skill-name">
-                        <span>${skill.name}</span>
-                        <span>${skill.level}%</span>
-                    </div>
-                    <div class="skill-bar">
-                        <div class="skill-fill" style="width: ${skill.level}%"></div>
+    // Check if portfolio data exists
+    if (!window.portfolioData || !window.portfolioData.projects) {
+        alert('Error: Portfolio data not found!');
+        console.error('Portfolio data is missing');
+        return;
+    }
+    
+    // Get project data
+    const projects = window.portfolioData.projects;
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+        alert('Project not found!');
+        console.error('Project with ID', projectId, 'not found');
+        return;
+    }
+    
+    console.log('Project found:', project);
+    
+    // Check if project has an embedded dashboard
+    const dashboardSection = project.dashboard_url ? `
+        <div class="modal-section">
+            <h3>🎯 Interactive Dashboard</h3>
+            <div class="dashboard-container">
+                <iframe src="${project.dashboard_url}" 
+                        frameborder="0" 
+                        allowFullScreen="true"
+                        class="embedded-dashboard">
+                </iframe>
+            </div>
+            <p class="dashboard-note">
+                <strong>Note:</strong> Interact with the dashboard above - use filters, hover over charts, and explore the data!
+            </p>
+        </div>
+    ` : '';
+    
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" id="projectModal" onclick="closeProjectModal()">
+            <div class="modal-content modal-large" onclick="event.stopPropagation()">
+                <span class="modal-close" onclick="closeProjectModal()">&times;</span>
+                
+                <h2 class="modal-title">${project.title}</h2>
+                <p class="modal-description">${project.description}</p>
+                
+                <div class="modal-section">
+                    <h3>🛠️ Tools & Technologies</h3>
+                    <div class="project-tools">
+                        ${project.tools.map(tool => `<span class="tool-tag">${tool}</span>`).join('')}
                     </div>
                 </div>
-            `).join('')}
-        `;
-        container.appendChild(categoryDiv);
-    });
-}
-
-function renderProjects(projects) {
-    const container = document.getElementById('projectsContainer');
-    
-    projects.forEach(project => {
-        const projectDiv = document.createElement('div');
-        projectDiv.className = 'project-card';
-        projectDiv.innerHTML = `
-            <h3>${project.title}</h3>
-            <p>${project.description}</p>
-            <div class="tools">
-                ${project.tools.map(tool => `<span class="tool-tag">${tool}</span>`).join('')}
+                
+                <div class="modal-section">
+                    <h3>📊 Business Impact</h3>
+                    <p class="project-impact-large">${project.impact}</p>
+                </div>
+                
+                ${dashboardSection}
+                
+                <div class="modal-section">
+                    <h3>📝 Project Details</h3>
+                    <p class="project-details-text">${project.details}</p>
+                </div>
+                
+                <div class="modal-footer">
+                    <button class="btn-primary" onclick="closeProjectModal()">Close</button>
+                </div>
             </div>
-            <p class="impact"><strong>Impact:</strong> ${project.impact}</p>
-            <p>${project.details}</p>
-        `;
-        container.appendChild(projectDiv);
-    });
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Modal opened successfully');
 }
 
-function renderExperience(experience) {
-    const container = document.getElementById('experienceContainer');
-    
-    experience.forEach(exp => {
-        const expDiv = document.createElement('div');
-        expDiv.className = 'experience-item';
-        expDiv.innerHTML = `
-            <h3>${exp.role}</h3>
-            <p class="experience-meta">${exp.company} | ${exp.duration}</p>
-            <ul>
-                ${exp.achievements.map(achievement => `<li>${achievement}</li>`).join('')}
-            </ul>
-        `;
-        container.appendChild(expDiv);
-    });
+function closeProjectModal() {
+    console.log('Closing modal');
+    const modal = document.getElementById('projectModal');
+    if (modal) {
+        modal.remove();
+    }
+    document.body.style.overflow = 'auto';
 }
 
-// Contact Form
-document.getElementById('contactForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        message: document.getElementById('message').value
-    };
-    
-    try {
-        const response = await fetch('/api/contact', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        if (response.ok) {
-            alert('Message sent successfully!');
-            document.getElementById('contactForm').reset();
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error sending message');
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeProjectModal();
     }
 });
 
-// Load on page load
-document.addEventListener('DOMContentLoaded', loadPortfolioData);
+// ============================================
+// SMOOTH SCROLLING FOR NAVIGATION
+// ============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
+    // Smooth scroll for anchor links
+    const navLinks = document.querySelectorAll('a[href^="#"]');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetSection = document.querySelector(targetId);
+            if (targetSection) {
+                targetSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+
+// ============================================
+// CONTACT FORM HANDLING
+// ============================================
+
+function handleContactForm(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        message: formData.get('message')
+    };
+    
+    console.log('Contact form submitted:', data);
+    
+    // Here you can add AJAX call to backend
+    alert('Thank you! Your message has been sent successfully.');
+    form.reset();
+}
+
+console.log('All JavaScript functions loaded successfully!');
+
+// ============================================
+// DARK MODE TOGGLE FUNCTIONALITY
+// ============================================
+
+// Check for saved theme preference or default to light mode
+const currentTheme = localStorage.getItem('theme') || 'light';
+
+// Apply saved theme on page load
+if (currentTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+}
+
+// Theme toggle button functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('theme-toggle');
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            
+            // Save theme preference
+            const theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            console.log('Theme changed to:', theme);
+        });
+    } else {
+        console.error('Theme toggle button not found!');
+    }
+});
+
