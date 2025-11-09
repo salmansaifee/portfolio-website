@@ -12,7 +12,7 @@ PORTFOLIO_DATA = {
     'title': 'Senior Data Analyst',
     'email': 'salmansaifee77@gmail.com',
     'location': 'India',
-    'phone': '+91-XXXXXXXXXX',
+    'phone': '+91-8655512366',
     'experience_years': 3,
     'bio': 'Data Analyst with 3 years of expertise transforming data into actionable insights.',
     
@@ -46,21 +46,20 @@ PORTFOLIO_DATA = {
     'skills': {
         'Data Tools': [
             {'name': 'Power BI', 'level': 95},
-            {'name': 'Tableau', 'level': 90},
+            {'name': 'Tableau', 'level': 60},
             {'name': 'Excel', 'level': 95}
         ],
         'Programming': [
-            {'name': 'Python', 'level': 88},
-            {'name': 'SQL', 'level': 92},
-            {'name': 'R', 'level': 75}
+            {'name': 'Python', 'level': 50},
+            {'name': 'SQL', 'level': 60}
         ]
     },
     
     'experience': [
         {
-            'company': 'Tech Company Ltd',
+            'company': 'DataAstraa LLP',
             'role': 'Senior Data Analyst',
-            'duration': 'Jan 2023 - Present',
+            'duration': 'Sept 2022 - Present',
             'achievements': [
                 'Led team of 3 analysts',
                 'Developed 25+ dashboards',
@@ -68,12 +67,12 @@ PORTFOLIO_DATA = {
             ]
         },
         {
-            'company': 'Analytics Firm Inc',
-            'role': 'Data Analyst',
-            'duration': 'Jun 2021 - Dec 2022',
+            'company': 'Accenture',
+            'role': 'Analyst',
+            'duration': 'Mar 2022 - Mar 2022',
             'achievements': [
-                'Created 15+ Power BI dashboards',
-                'Performed SQL analysis',
+                'Preparation of Teams Performance Report in Excel',
+                'Performed Excel analysis',
                 'Improved efficiency by 30%'
             ]
         }
@@ -97,6 +96,7 @@ def get_projects():
 @app.route('/api/skills', methods=['GET'])
 def get_skills():
     return jsonify(PORTFOLIO_DATA['skills']), 200
+
 
 @app.route('/api/experience', methods=['GET'])
 def get_experience():
