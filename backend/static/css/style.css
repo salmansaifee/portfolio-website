@@ -33,6 +33,16 @@ body {
     padding: 0 20px;
 }
 
+/* Styling Profile Photo */
+.profile-photo {
+  width: 180px;
+  border-radius: 100px;
+  margin: 20px auto;
+  display: block;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+
+
 /* Navigation */
 .navbar {
     position: sticky;
