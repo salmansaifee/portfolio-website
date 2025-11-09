@@ -8,31 +8,8 @@
 </head>
 <body>
 
-<!-- Navigation -->
-<!-- <header>
-    <nav class="navbar">
-        <div class="container nav-container">
-            <div class="logo">
-                <h1>Salman Saifee</h1>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#skills">Skills</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="#experience">Experience</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <!-- Dark Mode Toggle Button -->
-                <!-- <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
-                        <span class="sun-icon">☀️</span>
-                        <span class="moon-icon">🌙</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
-    </nav>
-</header> --> -->
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -43,6 +20,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
     <!-- NAVIGATION WITH THEME TOGGLE -->
     <header class="header">
         <nav class="navbar">
@@ -59,6 +37,7 @@
                         <li><a href="#experience">Experience</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
+
                     <!-- THEME TOGGLE BUTTON -->
                     <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">
                         <span class="icon-sun">☀️</span>
@@ -199,7 +178,7 @@
 <section id="experience" class="experience">
     <div class="container">
         <h2>Work Experience</h2>
-        <div class="experience-list">
+        <div class="experience-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
             {% for job in data.experience %}
             <div class="experience-item">
                 <div class="experience-header">
@@ -217,7 +196,6 @@
         </div>
     </div>
 </section>
-
 
 
     <!-- Contact Section -->
