@@ -2,88 +2,184 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
 import os
+import pandas as pd
 
 app = Flask(__name__)
 CORS(app)
 
-# ========== YOUR PERSONAL INFORMATION ==========
-PORTFOLIO_DATA = {
+# ========== CONFIGURATION ==========
+EXCEL_FILE = r'C:\Users\Salman Saifee\portfolio-website\portfolio_data.xlsx'
+USE_EXCEL = os.path.exists(EXCEL_FILE)
+
+# ========== DEFAULT DATA ==========
+DEFAULT_PORTFOLIO_DATA = {
     'name': 'Salman Saifee',
     'title': 'Senior Data Analyst',
     'email': 'salmansaifee77@gmail.com',
-    'location': 'India',
-    'phone': '+91-8655512366',
-    'experience_years': 3,
+    'location': 'Mumbai, India',
+    'phone': '+91-86555 12366',
+    'experience_years': '3',
     'bio': 'Data Analyst with 3 years of expertise transforming data into actionable insights.',
-    
-    'projects': [
-        {
-            'id': 1,
-            'title': 'Sales Performance Dashboard',
-            'description': 'Interactive Power BI dashboard for sales analytics',
-            'tools': ['Power BI', 'SQL', 'Excel'],
-            'impact': '15% Revenue Increase',
-            'details': 'Created dashboard analyzing 5000+ transactions resulting in 15% revenue increase',
-            'dashboard_url': 'https://app.powerbi.com/view?r=eyJrIjoiYmYzNzQ1ODQtNzdiNS00MWIwLTk5NTQtNmJlMTkzMDZhOWJhIiwidCI6ImRiOTNmNTcwLTJiZTEtNDA4My05OWJhLTA4M2E0MWQyY2I0MSJ9'
-        },
-        {
-            'id': 2,
-            'title': 'Customer Churn Prediction Model',
-            'description': 'ML model to predict customer churn',
-            'tools': ['Python', 'SQL', 'Tableau'],
-            'impact': '3.2% Churn Reduction',
-            'details': 'Built ML model with 87% accuracy to identify at-risk customers'
-        },
-        {
-            'id': 3,
-            'title': 'Inventory Optimization Analysis',
-            'description': 'SQL-based warehouse optimization',
-            'tools': ['SQL', 'Excel', 'Power BI'],
-            'impact': '12% Cost Savings',
-            'details': 'Optimized stock levels for 500+ SKUs saving 12% operational costs'
-        }
-    ],
-    
-    'skills': {
-        'Data Tools': [
-            {'name': 'Power BI', 'level': 95},
-            {'name': 'Tableau', 'level': 60},
-            {'name': 'Excel', 'level': 95}
-        ],
-        'Programming': [
-            {'name': 'Python', 'level': 50},
-            {'name': 'SQL', 'level': 60}
-        ],
-        'Soft Skills': [
-            {'name': 'Communication', 'level': 90},
-            {'name': 'Team Leadership', 'level': 80},
-            {'name': 'Stakeholder Co-ordination', 'level': 80}
-        ]
-    },
-    
-    'experience': [
-        {
-            'company': 'DataAstraa LLP',
-            'role': 'Senior Data Analyst',
-            'duration': 'Sept 2022 - Present',
-            'achievements': [
-                'Led team of 3 analysts',
-                'Developed 25+ dashboards',
-                'Implemented data governance'
-            ]
-        },
-        {
-            'company': 'Accenture',
-            'role': 'Analyst',
-            'duration': 'Mar 2020 - Mar 2022',
-            'achievements': [
-                'Preparation of Teams Performance Report in Excel',
-                'Performed Excel analysis',
-                'Improved efficiency by 30%'
-            ]
-        }
-    ]
+    'projects': [],
+    'skills': {},
+    'experience': [],
+    'certifications': [],
+    'education': []
 }
+
+# ========== LOAD DATA FROM EXCEL ==========
+def load_portfolio_data():
+    """Load all data from Excel file or return default data"""
+    if not USE_EXCEL:
+        print(f"⚠️ Excel file not found: {EXCEL_FILE}")
+        print("📝 Using default hardcoded data\n")
+        return DEFAULT_PORTFOLIO_DATA
+    
+    try:
+        print(f"\n{'='*60}")
+        print(f"📂 Loading data from Excel: {EXCEL_FILE}")
+        print(f"{'='*60}")
+        
+        excel_file = pd.ExcelFile(EXCEL_FILE)
+        print(f"📋 Available sheets: {excel_file.sheet_names}\n")
+        
+        # ========== Load Personal Info ==========
+        print("📄 Loading Personal_Info...")
+        personal_df = pd.read_excel(excel_file, 'Personal_Info')
+        personal_info = {}
+        for _, row in personal_df.iterrows():
+            field = str(row['Field']).strip()
+            value = row['Value']
+            # Convert to string but keep numbers as strings
+            if pd.notna(value):
+                personal_info[field] = str(value).strip()
+        
+        print(f"   ✅ Loaded fields: {list(personal_info.keys())}")
+        
+        # ========== Load Skills ==========
+        print("📄 Loading Skills...")
+        skills_df = pd.read_excel(excel_file, 'Skills')
+        skills = {}
+        for category in skills_df['Category'].unique():
+            if pd.notna(category):
+                category_skills = skills_df[skills_df['Category'] == category]
+                skills[category] = [
+                    {'name': str(row['Skill']), 'level': int(row['Level'])}
+                    for _, row in category_skills.iterrows()
+                    if pd.notna(row['Skill'])
+                ]
+        print(f"   ✅ Loaded {len(skills)} skill categories: {list(skills.keys())}")
+        
+        # ========== Load Experience ==========
+        print("📄 Loading Experience...")
+        experience_df = pd.read_excel(excel_file, 'Experience')
+        experience = []
+        for _, row in experience_df.iterrows():
+            achievements = []
+            for i in range(1, 6):
+                achievement = row.get(f'Achievement{i}', '')
+                if pd.notna(achievement) and str(achievement).strip():
+                    achievements.append(str(achievement).strip())
+            
+            if pd.notna(row['Company']):
+                experience.append({
+                    'company': str(row['Company']).strip(),
+                    'role': str(row['Role']).strip() if pd.notna(row['Role']) else '',
+                    'duration': str(row['Duration']).strip() if pd.notna(row['Duration']) else '',
+                    'achievements': achievements
+                })
+        print(f"   ✅ Loaded {len(experience)} experience entries")
+        
+        # ========== Load Projects ==========
+        print("📄 Loading Projects...")
+        projects_df = pd.read_excel(excel_file, 'Projects')
+        projects = []
+        for idx, row in projects_df.iterrows():
+            if pd.notna(row['Title']):
+                tools_str = str(row['Tools']) if pd.notna(row['Tools']) else ''
+                tools_list = [t.strip() for t in tools_str.split(',') if t.strip()]
+                
+                dashboard_url = ''
+                if 'Dashboard_URL' in row and pd.notna(row['Dashboard_URL']):
+                    dashboard_url = str(row['Dashboard_URL']).strip()
+                
+                projects.append({
+                    'id': idx + 1,
+                    'title': str(row['Title']).strip(),
+                    'description': str(row['Description']).strip() if pd.notna(row['Description']) else '',
+                    'tools': tools_list,
+                    'impact': str(row['Impact']).strip() if pd.notna(row['Impact']) else '',
+                    'details': str(row['Details']).strip() if pd.notna(row['Details']) else '',
+                    'dashboard_url': dashboard_url
+                })
+        print(f"   ✅ Loaded {len(projects)} projects")
+        
+        # ========== Load Certifications ==========
+        print("📄 Loading Certifications...")
+        certifications_df = pd.read_excel(excel_file, 'Certifications')
+        certifications = []
+        for _, row in certifications_df.iterrows():
+            if pd.notna(row['Certification']):
+                # Handle date
+                cert_date = row['Date']
+                if isinstance(cert_date, pd.Timestamp):
+                    cert_date = cert_date.strftime('%b-%y')
+                elif pd.notna(cert_date):
+                    cert_date = str(cert_date)
+                else:
+                    cert_date = ''
+                
+                # Handle credential ID
+                credential_id = ''
+                if 'Credential_ID' in row and pd.notna(row['Credential_ID']):
+                    credential_id = str(row['Credential_ID']).strip()
+                
+                certifications.append({
+                    'name': str(row['Certification']).strip(),
+                    'issuer': str(row['Issuer']).strip() if pd.notna(row['Issuer']) else '',
+                    'date': cert_date,
+                    'credential_id': credential_id
+                })
+        print(f"   ✅ Loaded {len(certifications)} certifications")
+        
+        # ========== Load Education ==========
+        print("📄 Loading Education...")
+        education_df = pd.read_excel(excel_file, 'Education')
+        education = []
+        for _, row in education_df.iterrows():
+            if pd.notna(row['Degree']):
+                education.append({
+                    'degree': str(row['Degree']).strip(),
+                    'institution': str(row['Institution']).strip() if pd.notna(row['Institution']) else '',
+                    'year': str(row['Year']).strip() if pd.notna(row['Year']) else '',
+                    'details': str(row['Details']).strip() if pd.notna(row.get('Details', '')) else ''
+                })
+        print(f"   ✅ Loaded {len(education)} education entries")
+        
+        # ========== Combine all data ==========
+        portfolio_data = {
+            **personal_info,
+            'skills': skills,
+            'experience': experience,
+            'projects': projects,
+            'certifications': certifications,
+            'education': education
+        }
+        
+        print(f"\n{'='*60}")
+        print("✅ ALL DATA LOADED SUCCESSFULLY FROM EXCEL!")
+        print(f"{'='*60}\n")
+        
+        return portfolio_data
+    
+    except Exception as e:
+        print(f"\n❌ ERROR loading Excel file: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        print("\n📝 Falling back to default hardcoded data.\n")
+        return DEFAULT_PORTFOLIO_DATA
+
 
 # ========== API ENDPOINTS ==========
 
@@ -93,20 +189,33 @@ def health():
 
 @app.route('/api/portfolio', methods=['GET'])
 def get_portfolio():
-    return jsonify(PORTFOLIO_DATA), 200
+    data = load_portfolio_data()
+    return jsonify(data), 200
 
 @app.route('/api/projects', methods=['GET'])
 def get_projects():
-    return jsonify(PORTFOLIO_DATA['projects']), 200
+    data = load_portfolio_data()
+    return jsonify(data.get('projects', [])), 200
 
 @app.route('/api/skills', methods=['GET'])
 def get_skills():
-    return jsonify(PORTFOLIO_DATA['skills']), 200
-
+    data = load_portfolio_data()
+    return jsonify(data.get('skills', {})), 200
 
 @app.route('/api/experience', methods=['GET'])
 def get_experience():
-    return jsonify(PORTFOLIO_DATA['experience']), 200
+    data = load_portfolio_data()
+    return jsonify(data.get('experience', [])), 200
+
+@app.route('/api/certifications', methods=['GET'])
+def get_certifications():
+    data = load_portfolio_data()
+    return jsonify(data.get('certifications', [])), 200
+
+@app.route('/api/education', methods=['GET'])
+def get_education():
+    data = load_portfolio_data()
+    return jsonify(data.get('education', [])), 200
 
 @app.route('/api/contact', methods=['POST'])
 def contact():
@@ -116,21 +225,58 @@ def contact():
         email = data.get('email')
         message = data.get('message')
         
-        print(f"Message from {name} ({email}): {message}")
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"\n📧 [{timestamp}] Contact Form Submission:")
+        print(f"   Name: {name}")
+        print(f"   Email: {email}")
+        print(f"   Message: {message}\n")
         
         return jsonify({
             'status': 'success',
-            'message': 'Message received!'
+            'message': 'Message received! Thank you for reaching out.'
         }), 200
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-
 @app.route('/')
 def home():
-    return render_template('index.html', data=PORTFOLIO_DATA)
+    data = load_portfolio_data()
+    return render_template('index.html', data=data)
 
+@app.route('/reload')
+def reload_data():
+    """Force reload data from Excel"""
+    data = load_portfolio_data()
+    return jsonify({
+        'success': True,
+        'message': 'Data reloaded successfully',
+        'using_excel': USE_EXCEL,
+        'excel_path': EXCEL_FILE,
+        'data_summary': {
+            'name': data.get('name', 'N/A'),
+            'projects': len(data.get('projects', [])),
+            'skills_categories': len(data.get('skills', {})),
+            'experience': len(data.get('experience', [])),
+            'certifications': len(data.get('certifications', [])),
+            'education': len(data.get('education', []))
+        }
+    })
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
+    
+    print("\n" + "="*60)
+    print("🚀 PORTFOLIO WEBSITE SERVER STARTING")
+    print("="*60)
+    
+    if USE_EXCEL:
+        print(f"✅ Excel file found: {EXCEL_FILE}")
+        print("📊 Portfolio data will load dynamically from Excel")
+    else:
+        print(f"⚠️ Excel file not found: {EXCEL_FILE}")
+        print("📝 Using hardcoded default data")
+    
+    print(f"🌐 Server: http://localhost:{port}")
+    print("="*60)
+    
     app.run(debug=True, host='0.0.0.0', port=port)
