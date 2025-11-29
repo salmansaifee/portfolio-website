@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ========== CONFIGURATION ==========
-EXCEL_FILE = r'C:\Users\Salman Saifee\portfolio-website\portfolio_data.xlsx'
+EXCEL_FILE = r'C:\Users\Salman Saifee\portfolio-website\backend\portfolio_data.xlsx'
 USE_EXCEL = os.path.exists(EXCEL_FILE)
 
 # ========== DEFAULT DATA ==========
